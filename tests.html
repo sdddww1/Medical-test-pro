@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Генетический тест</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background: #f4f4f4;
+    }
+    .question {
+      margin-bottom: 20px;
+    }
+    .question.correct {
+      background-color: #d4edda;
+    }
+    .question.incorrect {
+      background-color: #f8d7da;
+    }
+    .result-section {
+      display: none;
+      text-align: center;
+    }
+    .result-section img {
+      max-width: 300px;
+      margin: 20px auto;
+    }
+    .button-container {
+      margin-top: 20px;
+    }
+    button {
+      margin: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+    }
+    #test-container.hidden {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <div id="test-container"></div>
+  <button id="submit-btn">Завершить тест</button>
+
+  <div class="result-section" id="result-section">
+    <h2 id="result-message"></h2>
+    <img id="result-image" src="" alt="Результат" />
+    <p id="score-display"></p>
+    <div class="button-container">
+      <button onclick="showAnswers()">Посмотреть ответы</button>
+      <button onclick="restartTest()">Пройти заново</button>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        q: "У пациента хромосомная болезнь – синдром Клайнфельтера. Общее количество хромосом у него составляет 47 (кариотип XXY). В соматических клетках выявляется половой хроматин, количество которого равно числу X-хромосом минус 1",
+        options: ["Тельца Мэллори", "Тельца Барра", "Кольца Кебота", "Тельца Князькова-Деле", "Тельца Жолли"],
+        answer: 1
+      },
+      {
+        q: "При обследовании 2-х месячного ребенка педиатр обратила внимание, что плач ребенка напоминает кошачий крик. Диагностированы микроцефалия и порок сердца. Посредством цитогенетического метода выяснен кариотип ребенка: 46, XX, 5р. Данное заболевание является следствием такого процесса:",
+        options: ["Делеция", "Дупликация", "Инверсия", "Транслокация", "Плейотропия"],
+        answer: 0
+      },
+      {
+        q: "В фибробластах кожи ребенка с диагнозом болезнь Дауна обнаружено 47 хромосом. Определите тип аномалии.",
+        options: ["Полисомия Ү", "Трисомия 13", "Трисомия Х", "Трисомия 18", "Трисомия 21"],
+        answer: 4
+      },
+      {
+        q: "У женщины во время мейоза произошло нарушение расхождения аутосом. Образовалась яйцеклетка с излишней 18-й хромосомой. Яйцеклетка оплодотворяется обычным сперматозооном. У будущего ребенка будет синдром:",
+        options: ["Клайнфельтера", "Шерешевского-Тернера", "Эдвардса", "Дауна", "Патау"],
+        answer: 2
+      },
+      {
+        q: "У новорожденного мальчика наблюдается: лихоцефалический череп, микроцефалия, пороки сердца, почек и пищеварительной системы. Кариотип ребенка 47, ХY, +18. Какой вероятный диагноз?",
+        options: ["Синдром Дауна", "Синдром Эдвардса", "Синдром Шершевского-Тернера", "Синдром Патау", "Синдром Клайнфельтера"],
+        answer: 1
+      },
+      {
+        q: "У новорожденного мальчика обнаружена полидактилия, микроцефалия, незаращение верхней губы и верхнего неба, а также гипертрофия паренхиматозных органов. Указанные изъяны соответствуют синдрому Патау. Какова наиболее вероятная причина данной патологии?",
+        options: ["Трисомия 21-й хромосомы", "Частичная моносомия", "Неразличие половых хромосом", "Трисомия 18-й хромосомы", "Трисомия 13-й хромосомы"],
+        answer: 4
+      },
+      {
+        q: "На вскрытии обращает на себя внимание следующее: тело молодого человека высокого роста, выраженная бледность и эластичность кожи, долихоцефалическое строение головы, удлинение и контрактура пальцев верхних и нижних конечностей (напоминают конечности паука), незначительное вдавливание грудины внутрь, умеренно выраженное сколи. При исследовании органов грудной полости обнаружили разрыв аневризмы восходящей части аорты. Какое заболевание, вероятнее всего, имело место в этом случае?",
+        options: ["Синдром Марфана", "Атеросклероз аорты", "Сифилитический мезоаортит", "Синдром Гудпасчера"],
+        answer: 0
+      },
+      {
+        q: "При обследовании пациента в возрасте 42 года наблюдается гинекомастия, атрофия семенников, слабый рост волос на лице и груди, в нейтрофильных лейкоцитах обнаружены тельца Барра. Какому заболеванию соответствуют такие патологические изменения?",
+        options: ["Трисомии X", "Синдрома Патау", "Синдрома Дауна", "Синдрома Клайнфельтера", "Фенилкетонурия"],
+        answer: 3
+      },
+      {
+        q: "В кариотипе пациента 47 хромосом, в ядре соматической клетки обнаружено тельце Барра. При дополнительных исследованиях наблюдается эндокринная недостаточность: недоразвитие семенников и отсутствие сперматогенеза. О каком синдроме свидетельствует этот фенотип?",
+        options: ["Патау", "Эдвардса", "Клайнфельтера", "Дауна", "Шерешевского-Тернера"],
+        answer: 2
+      },
+      {
+        q: "Пациентка 25 лет жалуется на дисменорею и бесплодие. Во время обследования обнаружено: рост женщины – 145 см, недоразвитые вторичные половые признаки, на шее крыловидные складки. В букальном эпителии не обнаружено телец Барра. Какое патологическое состояние наблюдается у пациентки?",
+        options: ["Синдром Дауна", "Синдром трисомии Х", "Синдром Клайнфельтера", "Синдром Moppica", "Синдром Шерешевского-Тернера"],
+        answer: 4
+      },
+      {
+        q: "В медико-генетической консультации исследовали кариотип ребенка с нарушениями физического развития. Выявлена трисомия хромосомы 13. Как называется этот синдром?",
+        options: ["Шерешевского-Тернера", "Эдвардса", "Патау", "Клайнфельтера", "Дауна"],
+        answer: 2
+      },
+      {
+        q: "В кариотипе матери 45 хромосом. Установлено, что это связано с транслокацией 21-й хромосомы на 14-ю. Какое заболевание вероятнее всего будет у ребенка, если кариотип родителя нормальный?",
+        options: ["Синдром Дауна", "Синдром Эдвардса", "Синдром Мориса", "Синдром Патау", "Синдром Клайнфельтера"],
+        answer: 0
+      },
+      {
+        q: "У ребенка с врожденными пороками развития диагностирован синдром, который называют кошачий крик. Что обнаружат при исследовании кариотипа этого ребенка?",
+        options: ["Дополнительную У-хромосому", "Дополнительную Х-хромосому", "Недостаток Х-хромосомы", "Дополнительную 21-ю хромосому", "Делецию короткого плеча 5-й хромосомы"],
+        answer: 4
+      },
+      {
+        q: "В медико-генетическую консультацию обратился юноша по поводу отклонений в физическом и половом развитии. В ходе микроскопии клеток слизистой рта обнаружены тельца Барра. Укажите наиболее вероятный кариотип юноши:",
+        options: ["47,18+", "47, ХYY", "45, ХО", "47, 21+", "47, ХХY"],
+        answer: 4
+      },
+      {
+        q: "Для диагностирования некоторых хромосомных заболеваний используют определение полового хроматина. Назовите болезнь, при которой нужно это определение:",
+        options: ["Болезнь Брутона", "Болезнь Дауна", "Синдром Шерешевского-Тернера", "Гемофилия", "Синдром Патау"],
+        answer: 2
+      }
+    ];
+
+    let userAnswers = [];
+
+    function renderTest() {
+      const container = document.getElementById('test-container');
+      container.innerHTML = '';
+      questions.forEach((q, idx) => {
+        const div = document.createElement('div');
+        div.className = 'question';
+        div.innerHTML = `<p><b>${idx + 1}. ${q.q}</b></p>` +
+          q.options.map((opt, i) => `
+            <label>
+              <input type="radio" name="q${idx}" value="${i}"> ${opt}
+            </label><br>`).join('');
+        container.appendChild(div);
+      });
+    }
+
+    function gradeTest() {
+      const container = document.getElementById('test-container');
+      const answers = container.querySelectorAll('.question');
+      let correctCount = 0;
+      userAnswers = [];
+      answers.forEach((div, idx) => {
+        const selected = div.querySelector('input[type=radio]:checked');
+        const answerIdx = selected ? parseInt(selected.value) : -1;
+        userAnswers.push(answerIdx);
+        if (answerIdx === questions[idx].answer) {
+          div.classList.add('correct');
+          correctCount++;
+        } else {
+          div.classList.add('incorrect');
+        }
+      });
+      const percent = Math.round((correctCount / questions.length) * 100);
+      showResult(percent, correctCount);
+    }
+
+    function showResult(percent, correctCount) {
+      document.getElementById('test-container').classList.add('hidden');
+      document.getElementById('submit-btn').style.display = 'none';
+      const resultSection = document.getElementById('result-section');
+      const message = document.getElementById('result-message');
+      const image = document.getElementById('result-image');
+      const score = document.getElementById('score-display');
+
+      if (percent >= 80) {
+        message.textContent = 'Ты молодец!';
+        image.src = 'https://i.pinimg.com/1200x/41/a7/08/41a708e11a974ddc481a66bbaa05114e.jpg';
+      } else if (percent >= 50) {
+        message.textContent = 'Хорошо, но ты можешь лучше';
+        image.src = 'https://i.pinimg.com/1200x/c9/c4/be/c9c4be2fc8dc684a4f8f3296a61d3fbb.jpg';
+      } else {
+        message.textContent = 'Давай еще раз, ты можешь лучше';
+        image.src = 'https://i.pinimg.com/736x/1f/6a/1e/1f6a1e297847f4b5a7af6ea3e49cf2bd.jpg';
+      }
+      score.textContent = `Вы правильно ответили на ${correctCount} из ${questions.length} вопросов (${percent}%)`;
+      resultSection.style.display = 'block';
+    }
+
+    function showAnswers() {
+      const questionsDivs = document.querySelectorAll('.question');
+      questionsDivs.forEach((div, idx) => {
+        const radios = div.querySelectorAll('input[type=radio]');
+        radios.forEach((radio, i) => {
+          radio.disabled = true;
+
+          // Очистка стилей
+          radio.parentElement.style.color = '';
+          radio.parentElement.style.fontWeight = '';
+
+          // Подсветка правильного ответа
+          if (i === questions[idx].answer) {
+            radio.parentElement.style.color = 'green';
+            radio.parentElement.style.fontWeight = 'bold';
+          }
+
+          // Подсветка выбранного, но неправильного
+          if (userAnswers[idx] === i && userAnswers[idx] !== questions[idx].answer) {
+            radio.parentElement.style.color = 'red';
+            radio.parentElement.style.fontWeight = 'bold';
+          }
+
+          // Восстановить выбор пользователя
+          if (userAnswers[idx] === i) {
+            radio.checked = true;
+          }
+        });
+
+        div.classList.remove('correct', 'incorrect');
+      });
+
+      document.getElementById('result-section').style.display = 'none';
+      document.getElementById('test-container').classList.remove('hidden');
+    }
+
+    function restartTest() {
+      userAnswers = [];
+      renderTest();
+      document.getElementById('test-container').classList.remove('hidden');
+      document.getElementById('submit-btn').style.display = 'block';
+      document.getElementById('result-section').style.display = 'none';
+    }
+
+    document.getElementById('submit-btn').addEventListener('click', gradeTest);
+
+    renderTest();
+  </script>
+</body>
+</html>
